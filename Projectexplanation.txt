@@ -1,0 +1,477 @@
+# PROJECT CONTEXT: Alexander the Great's Voyage — Interactive Map
+
+---
+
+## 1. PROJECT OVERVIEW
+
+This is a single-file interactive HTML web application that visualizes Alexander the Great's military campaign from 334–323 BC on an animated, interactive Mercator projection map. The project was built entirely in a single file: `alexander_the_great_voyage.html`.
+
+The app has two core functions:
+1. **An animated map** that progressively draws Alexander's route segment by segment, using actual historically-sourced GPS waypoints extracted from a Google My Maps KML file.
+2. **A narrative sidebar** that displays detailed historical descriptions for each stop on the journey, written in a consistent journalistic style.
+
+The intended audience is general public / non-specialists. The tone is engaging but accurate. The user may want to share this as a GitHub Pages site.
+
+---
+
+## 2. DATA SOURCES
+
+### Primary map data
+The route waypoints were extracted from a publicly available Google My Maps titled **"Alexander the Great's Voyage"** (map ID: `1ngCGNBRd3lMT8UylJni6EwHiDbQ`, published September 1, 2020, 81,976 views). The KML data was accessed via:
+```
+https://www.google.com/maps/d/viewer?mid=1ngCGNBRd3lMT8UylJni6EwHiDbQ
+```
+The KML contains not just the 19 point markers but the full polyline waypoints for all 18 route segments between them — these are used for smooth, curved animation rather than straight lines.
+
+### Narrative text
+The historical descriptions were drafted by the user in a Word document titled **"Alexander the Great draft.docx"**. The draft covered Landing Points 1–12. Landing Points 13–17 and the Final Landing Point were written by Claude in the same style and appended to match. All descriptions are based on historically accurate information cross-referenced with Encyclopædia Britannica.
+
+---
+
+## 3. FILE STRUCTURE
+
+There is currently **one file** in the project:
+
+```
+alexander_the_great_voyage.html   ← entire app, self-contained
+```
+
+All CSS, JavaScript, and HTML are in this single file. The only external dependencies are loaded via CDN:
+- **Leaflet.js 1.9.4** — map rendering library (CSS + JS)
+- **Esri NatGeo World Map tiles** — the basemap (loaded at runtime by the browser)
+- Fallback: **OpenStreetMap tiles** (if Esri tiles fail)
+
+No build system, no npm, no frameworks. Pure HTML/CSS/JS.
+
+---
+
+## 4. MAP SETUP
+
+### Library
+**Leaflet.js 1.9.4**, loaded from cdnjs:
+```html
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+```
+
+### Projection
+Leaflet uses the **Web Mercator projection (EPSG:3857)** by default. This is intentional — it's standard for web maps and what was requested.
+
+### Initial view
+```javascript
+const map = L.map('map', { center: [36, 48], zoom: 4 });
+```
+This centers the map roughly over the Middle East/Persia, which is the geographic center of Alexander's campaign.
+
+### Tile layer
+**Primary:** Esri National Geographic World Map — a vintage atlas-style basemap with terrain, country borders, rivers, and labels. Chosen for its aesthetic match with an ancient history project.
+```javascript
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}', {
+  attribution: 'Tiles © Esri — National Geographic, Esri, DeLorme, NAVTEQ',
+  maxZoom: 16
+})
+```
+**Fallback:** OpenStreetMap standard tiles (added if NatGeo tiles fire a tileerror event).
+
+---
+
+## 5. COMPLETE POINT DATA
+
+There are **19 total points**: 1 departure, 17 numbered landing points, and 1 final landing point. All coordinates are `[latitude, longitude]`.
+
+### Point 0 — Departure
+- **Title:** Launch of Campaign
+- **Sub:** Spring 334 BC · Pella, Macedonia (Greece)
+- **Coordinates:** `[40.8886008, 23.972168]`
+- **Marker color:** `#4caf50` (green)
+- **Type:** `departure`
+- **Description:** Alexander the Great undertook a 12-year campaign to overthrow the Achaemenid Empire of Persia (550–330 BC). The empire united various Iranian tribes and conquered major powers. It was the largest empire the ancient world had seen, covering parts of modern-day Iran, Turkey, Egypt, Afghanistan, and Pakistan and incorporating an estimated 44% of the world's population at the time. The empire was multicultural, well organized and introduced a 'Royal Road' system and a standardized currency. Founded by Cyrus the Great, it was expanded by Darius I and Xerxes and was opposed by the Greek city states across multiple wars and famous battles, including the Battle of Marathon and the Battle of Thermopylae.
+
+### Point 1 — Landing Point 1
+- **Title:** Battle of the Granicus
+- **Sub:** May 334 BC · Turkey
+- **Coordinates:** `[40.3350301, 27.2721863]`
+- **Marker color:** `#f5c842` (gold)
+- **Type:** `landing`
+- **Description:** Alexander and his men had their first encounter with the Persian army at the Granicus River, now known as the Biga River. Although the Persians were a significant force and brought over 10,000 soldiers, Alexander and his army defeated them. From here, Alexander moved on to easily conquer the ancient cities of Sarnis, Miletus, and Halicarnassus. All of the conquered cities kept their original form of government but paid taxes to Alexander.
+
+### Point 2 — Landing Point 2
+- **Title:** The Gordian Knot
+- **Sub:** Winter 334–333 BC · Gordium, Turkey
+- **Coordinates:** `[39.6733704, 31.9921875]`
+- **Marker color:** `#f5c842`
+- **Description:** After the defeat of the Persian army at Granicus, Alexander and his men traveled throughout Asia Minor easily conquering Persian and Greek cities. The next significant stopping point was at Gordium, the home of the legendary Gordian Knot. The ancient legend said that whoever was able to untie the knot was destined to rule the world. Rather than attempting to untie it, Alexander simply cut it loose with his sword.
+
+### Point 3 — Landing Point 3
+- **Title:** Battle of Issus
+- **Sub:** November 333 BC · Turkey
+- **Coordinates:** `[36.8796206, 36.1560059]`
+- **Marker color:** `#f5c842`
+- **Description:** The Macedonian and Persian armies met for a second time at Issus in November of 333 BC. Historians estimate that the Persian forces were anywhere from 300,000 to 600,000 men, greatly outnumbering the Macedonians. Although they had many more soldiers, the Persians were defeated by Alexander and his men again. The massive defeat opened up a path for Alexander and his men to continue their conquest by moving south into Syria and Phoenicia.
+
+### Point 4 — Landing Point 4
+- **Title:** Siege of Tyre
+- **Sub:** July 332 BC · Lebanon
+- **Coordinates:** `[33.2731391, 35.2029419]`
+- **Marker color:** `#f5c842`
+- **Description:** While moving down the Phoenician coast, cities simply submitted to Alexander. However, the island city of Tyre resisted. In July of 332, Alexander and his men began a seven-month siege of the city, attacking it from ships that surrounded the island. During the siege, King Darius sent Alexander a letter offering him part of the empire in exchange for peace. Alexander refused and continued to move south towards Egypt after successfully taking Tyre.
+
+### Point 5 — Landing Point 5
+- **Title:** Siege of Gaza
+- **Sub:** Summer 332 BC · Gaza
+- **Coordinates:** `[31.5036293, 34.453125]`
+- **Marker color:** `#f5c842`
+- **Description:** On the way to Egypt, Alexander and his men were stopped again when Gaza refused to submit. They put the city under siege for two months until it finally fell. The conquering of Gaza meant that the entire Mediterranean coastline now belonged to the Macedonian Empire.
+
+### Point 6 — Landing Point 6
+- **Title:** Liberation of Egypt
+- **Sub:** Winter 332–331 BC · Egypt
+- **Coordinates:** `[31.200762, 29.9188614]`
+- **Marker color:** `#f5c842`
+- **Description:** Alexander entered Egypt in late 332 BC and was welcomed as a liberator from Persian rule. The Persian satrap (governor) of Egypt, Mazaces, surrendered peacefully because many troops had already been lost fighting Alexander at Issus. Alexander spent several months in Egypt, where he visited Memphis, consulted the Oracle of Amun-Ra, and founded the city of Alexandria before departing for Asia.
+
+### Point 7 — Landing Point 7
+- **Title:** Battle of Gaugamela
+- **Sub:** October 331 BC · Iraq
+- **Coordinates:** `[36.177791, 43.9947916]`
+- **Marker color:** `#f5c842`
+- **Description:** After gaining reinforcements in Tyre, Alexander and his men marched into Mesopotamia, conquering small cities along the way. The Macedonian and Persian armies met again at the Battle of Gaugamela on October 1, 331 BC near present-day Erbil. Darius and his men waited here to stop Alexander from entering the Persian Empire. Again greatly outnumbered, the Macedonians used superior tactics to prevail. When the Persians were becoming overpowered, Darius and his men began to retreat but were pursued by Alexander's forces, who were ultimately unable to capture them. Alexander then turned south to take Babylon.
+
+### Point 8 — Landing Point 8
+- **Title:** Babylon & Susa
+- **Sub:** October 331 BC · Iraq
+- **Coordinates:** `[32.4680606, 44.5495605]`
+- **Marker color:** `#f5c842`
+- **Description:** Before entering Babylon, Alexander received a request from the people to surrender their city, citadel, and treasury. Susa also surrendered without contest in late 331 BC, and its inhabitants were treated respectfully. The city yielded a massive treasury, including 50,000 gold talents and vast amounts of silver and jewels. Alexander found treasures there that had been taken from Greece by Xerxes I — such as statues of Harmodius and Aristogeiton — and ordered them returned to Athens.
+
+### Point 9 — Landing Point 9
+- **Title:** Persepolis
+- **Sub:** Early 330 BC · Iran
+- **Coordinates:** `[29.9358952, 52.8881836]`
+- **Marker color:** `#f5c842`
+- **Description:** Alexander forced his way through the mountainous Persian Gates and took Persepolis. He took possession of the enormous treasury, which held 120,000 talents of gold and silver — the largest concentration of wealth in the world at the time. He allowed his soldiers to plunder the city. After spending roughly four months there, Alexander ordered the palaces and the city itself burned in 330 BC. Sources indicate that Alexander regretted his decision the next morning, but the fire had already destroyed centuries of Zoroastrian religious texts and invaluable art.
+
+### Point 10 — Landing Point 10
+- **Title:** Media
+- **Sub:** Spring 330 BC · Iran
+- **Coordinates:** `[34.7957615, 48.515625]`
+- **Marker color:** `#f5c842`
+- **Description:** Alexander the Great occupied Media, a crucial Persian region, seizing its capital Ecbatana to cut off Darius III from his western territories. This conquest secured a significant administrative center, allowed him to seize vast treasures, and pushed his campaign deep into the heart of the Achaemenid Empire before pushing eastward towards India.
+
+### Point 11 — Landing Point 11
+- **Title:** Death of Darius III
+- **Sub:** 330 BC · Near Bactria, Afghanistan
+- **Coordinates:** `[35.6929946, 55.8105469]`
+- **Marker color:** `#f5c842`
+- **Description:** Alexander discovered that King Darius III had been hiding in a remote area near Bactria. When he arrived, he found Darius stabbed by his own satrap Bessus and left dying in a cart. Alexander sent Darius's body back to the capital Persepolis and ordered him buried with full royal honors in what remained of the royal tombs. With no rival king remaining, Alexander declared himself King of Asia.
+
+### Point 12 — Landing Point 12
+- **Title:** Zadracarta
+- **Sub:** 330 BC · Gorgan, Iran
+- **Coordinates:** `[37.1603777, 54.6353057]`
+- **Marker color:** `#f5c842`
+- **Description:** After crossing the Elburz Mountains, Alexander and his men conquered Zadracarta, modern-day Gorgan in northern Iran. Afterwards, Alexander continued his conquest eastward into the heart of Central Asia.
+
+### Point 13 — Landing Point 13
+- **Title:** Alexandria of the Arians
+- **Sub:** 330 BC · Herat, Afghanistan
+- **Coordinates:** `[34.3529553, 62.2038603]`
+- **Marker color:** `#f5c842`
+- **Description:** Alexander founded Alexandria of the Arians at the site of modern-day Herat in western Afghanistan, one of several cities he would name after himself during the campaign. Strategically placed on the Hari River, the city became an important hub on what would later become the ancient Silk Road, connecting the Mediterranean world to Central and South Asia.
+
+### Point 14 — Landing Point 14
+- **Title:** Conspiracy of Philotas
+- **Sub:** 330 BC · Farah, Afghanistan
+- **Coordinates:** `[31.6645315, 64.2664768]`
+- **Marker color:** `#f5c842`
+- **Description:** At the city of Phrada in Drangiana, Alexander uncovered a plot against his life. His general Philotas, son of the powerful Parmenion, was accused of withholding knowledge of the conspiracy. Philotas was tried before the assembled army, tortured, and executed. Alexander then sent orders to have Parmenion — his most senior general and his father's most trusted commander — assassinated in Media, despite Parmenion having no proven involvement in the plot.
+
+### Point 15 — Landing Point 15
+- **Title:** Alexandria Eschate
+- **Sub:** 329 BC · Khujand, Tajikistan
+- **Coordinates:** `[40.2741598, 69.6393299]`
+- **Marker color:** `#f5c842`
+- **Description:** Pressing into Central Asia, Alexander founded Alexandria Eschate — 'Alexandria the Farthest' — on the banks of the Jaxartes River (modern Syr Darya), marking the northeastern limit of his empire. From here he crossed the river to repel Scythian raids, demonstrating his intent to secure even the outermost frontiers of his conquered territories.
+
+### Point 16 — Landing Point 16
+- **Title:** Bactra
+- **Sub:** 327 BC · Balkh, Afghanistan
+- **Coordinates:** `[36.7552666, 66.8975759]`
+- **Marker color:** `#f5c842`
+- **Description:** Alexander spent nearly two years in Bactria and Sogdia suppressing local resistance — the most sustained guerrilla warfare of his entire campaign. It was here that he married the Bactrian princess Roxane, a politically significant union intended to legitimize his rule over the region. After consolidating control, Alexander gathered fresh reinforcements at Bactra and reorganized his army before launching his invasion of India.
+
+### Point 17 — Landing Point 17
+- **Title:** Taxila
+- **Sub:** Spring 326 BC · Punjab, Pakistan
+- **Coordinates:** `[33.5812652, 73.0175625]`
+- **Marker color:** `#f5c842`
+- **Description:** Alexander crossed the Hindu Kush and descended into the Punjab. At Taxila, the city's ruler Taxiles submitted willingly and provided Alexander with elephants, troops, and supplies. A major center of trade and learning, Taxila would go on to become one of the great cities of the ancient world. After resting and resupplying, Alexander prepared to push further east — but his army was approaching its breaking point.
+
+### Point 18 — Final Landing Point
+- **Title:** River Hyphasis — End of Conquest
+- **Sub:** 326 BC · Beas River, Punjab, India
+- **Coordinates:** `[32.1069975, 76.0199064]`
+- **Marker color:** `#e53935` (red)
+- **Type:** `final`
+- **Description:** At the Hyphasis (modern Beas River) in the Punjab, Alexander's troops finally refused to march any further east. After nearly a decade of continuous campaigning, they had heard reports of vast armies and war elephants beyond the river. Despite Alexander's personal pleas and appeals to glory, the soldiers stood firm — led by the general Coenus, who voiced the army's exhaustion. For the first time in his life, Alexander was forced to concede. He turned his forces south toward the sea, then west. Alexander died of a sudden fever in Babylon in June 323 BC, aged just 32, never having returned to Macedonia.
+
+---
+
+## 6. COMPLETE ROUTE SEGMENT WAYPOINTS
+
+There are 18 route segments (one between each consecutive pair of points). These are the actual polyline waypoints extracted from the Google My Maps KML — they follow realistic geographic paths, not straight lines. Each array is `[latitude, longitude]`.
+
+```javascript
+const segmentWaypoints = [
+  // Segment 0: Departure → Landing Point 1
+  [[40.8886008,23.972168],[40.6190717,24.1698112],[40.4487655,24.5851594],[40.1045613,25.4422462],[40.0304994,25.9210965],[40.0200526,26.1575122],[40.0356837,26.2743852],[40.1043992,26.3602636],[40.1730488,26.4366841],[40.2450186,26.6458233],[40.2872728,26.8470688],[40.3291458,27.0526859],[40.3350301,27.2721863]],
+
+  // Segment 1: LP1 → LP2
+  [[40.3350301,27.2721863],[40.0446839,27.244734],[39.9078633,27.2202907],[39.7708771,27.141258],[39.2741607,27.0559433],[38.7520911,27.0803839],[38.182069,27.1801757],[37.8549691,27.3624391],[37.6235432,27.351199],[37.4181633,27.5262451],[37.1734487,27.9492188],[36.7476878,29.130249],[36.4349174,29.4244],[36.4080207,29.899292],[36.5537752,30.3112793],[37.1690716,30.5419922],[37.7012073,30.904541],[38.7314122,31.3969231],[39.194256,31.6596007],[39.6733704,31.9921875]],
+
+  // Segment 2: LP2 → LP3
+  [[39.6733704,31.9921875],[39.8556936,32.4680869],[39.9516099,32.9679338],[39.9304101,33.2015551],[39.8384071,33.4139539],[39.6954323,33.6036926],[39.4389039,33.8224262],[39.1245916,34.0692398],[38.8479115,34.2208415],[38.1999793,34.3668595],[37.1801524,34.8021477],[36.8577709,34.8706875],[36.7863461,35.0118615],[36.7410773,35.2077104],[36.7981397,35.5573802],[36.9512878,35.8566282],[36.9901739,36.0393464],[36.8796206,36.1560059]],
+
+  // Segment 3: LP3 → LP4
+  [[36.8796206,36.1560059],[36.6872283,36.3151003],[36.3933443,36.0123167],[36.2651034,35.9462519],[36.128004,36.0120236],[35.8400805,36.0331693],[35.7692105,35.9257723],[35.6447868,35.8625299],[35.4227028,35.9886376],[35.151181,35.9992624],[34.9468383,35.9930356],[34.4913103,36.0409742],[34.2907854,35.7906033],[34.0537361,35.7168571],[33.6499864,35.5246517],[33.434166,35.3744335],[33.2731391,35.2029419]],
+
+  // Segment 4: LP4 → LP5
+  [[33.2731391,35.2029419],[33.1646504,35.2071756],[33.051559,35.1565363],[32.8299503,35.0829668],[32.7636584,35.0195013],[32.6441847,34.9644155],[32.3819808,34.914998],[31.899959,34.730992],[31.6878478,34.6137344],[31.5036293,34.453125]],
+
+  // Segment 5: LP5 → LP6
+  [[31.5036293,34.453125],[31.210574,34.2749952],[31.0341745,33.905878],[30.8648685,33.4723493],[30.694036,33.0235242],[30.3844549,31.7428874],[30.2441793,31.3998838],[30.1926467,31.2259063],[30.2215683,31.0409837],[30.3952474,30.8186879],[30.6824873,30.7880547],[31.0149484,30.7227487],[31.133968,30.6431385],[31.2058254,30.5166847],[31.2341776,30.3624816],[31.2294641,30.2082399],[31.200762,29.9188614]],
+
+  // Segment 6: LP6 → LP7
+  [[31.200762,29.9188614],[31.0036924,29.6788022],[30.8814921,29.5481599],[30.7403827,29.5166173],[30.5431644,29.7053223],[30.4118124,29.9482279],[30.1390541,30.5742807],[30.0424261,30.993627],[30.0109953,31.42341],[30.1816617,32.2729063],[30.8086798,34.0053059],[32.2345279,36.4574873],[33.2954379,37.6104193],[34.6233722,38.4791644],[35.4937304,39.4379454],[35.975598,40.5346518],[36.4668775,41.7571649],[36.4514545,42.9649257],[36.177791,43.9947916]],
+
+  // Segment 7: LP7 → LP8
+  [[36.177791,43.9947916],[35.2551064,43.9639082],[34.3413829,44.0640758],[33.4049581,44.2050654],[32.9274065,44.3287868],[32.4680606,44.5495605]],
+
+  // Segment 8: LP8 → LP9
+  [[32.4680606,44.5495605],[31.3225861,45.0682677],[30.8840655,46.1446572],[31.0360189,47.6522216],[31.6254458,48.8187258],[31.3847131,49.9367689],[30.9474355,50.9592241],[30.48309,51.9946258],[30.2221171,52.4646196],[29.9358952,52.8881836]],
+
+  // Segment 9: LP9 → LP10
+  [[29.9358952,52.8881836],[30.676984,52.6045431],[31.3413309,52.1175501],[32.514476,50.9914459],[33.7344102,49.8578386],[34.7957615,48.515625]],
+
+  // Segment 10: LP10 → LP11
+  [[34.7957615,48.515625],[35.6784454,50.1778664],[36.0132756,52.0549883],[36.2148199,52.9979773],[36.2492048,53.9423076],[36.1436381,55.0202881],[35.6929946,55.8105469]],
+
+  // Segment 11: LP11 → LP12
+  [[35.6929946,55.8105469],[37.1603777,54.6353057]],
+
+  // Segment 12: LP12 → LP13
+  [[37.1603777,54.6353057],[36.9768807,56.9133514],[36.3310002,59.0357698],[35.3881446,60.7930207],[34.3529553,62.2038603]],
+
+  // Segment 13: LP13 → LP14
+  [[34.3529553,62.2038603],[33.6238678,62.6156185],[32.9115867,63.0641235],[32.2523261,63.6474618],[31.6645315,64.2664768]],
+
+  // Segment 14: LP14 → LP15
+  [[31.6645315,64.2664768],[31.6073639,64.8665454],[31.678495,65.600119],[32.4003284,66.6020712],[33.1013199,67.2795634],[34.5296752,68.2680732],[35.8034272,68.5858247],[40.2741598,69.6393299]],
+
+  // Segment 15: LP15 → LP16
+  [[40.2741598,69.6393299],[39.5033153,68.7078623],[38.5914296,68.0591515],[37.6747719,67.3832864],[36.7552666,66.8975759]],
+
+  // Segment 16: LP16 → LP17
+  [[36.7552666,66.8975759],[35.4188941,68.0161215],[34.1769912,69.4021261],[33.7828238,71.2161565],[33.5812652,73.0175625]],
+
+  // Segment 17: LP17 → Final
+  [[33.5812652,73.0175625],[33.2797734,73.8874998],[32.8992273,74.6850142],[32.5048742,75.3993458],[32.1069975,76.0199064]]
+];
+```
+
+---
+
+## 7. UI LAYOUT
+
+The app layout is a horizontal flex split:
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  HEADER (full width) — title + subtitle                  │
+├────────────────────┬─────────────────────────────────────┤
+│  SIDEBAR (320px)   │  MAP (flex: 1, fills remaining)     │
+│  ─────────────────  │                                     │
+│  Progress bar       │                                     │
+│  Info panel         │                                     │
+│  (scrollable)       │                                     │
+│  ─────────────────  │                                     │
+│  Step counter       │                                     │
+│  Buttons (Start/    │                                     │
+│  Next)              │                                     │
+└────────────────────┴─────────────────────────────────────┘
+```
+
+### Header
+- Dark brown gradient background (`#2c1f08` → `#4a3010`)
+- Gold bottom border (`#c8960c`)
+- Sword emoji + title + subtitle
+
+### Sidebar (320px wide, `#130e04` dark background)
+**Sections (top to bottom):**
+1. **Progress bar** — thin orange/gold gradient bar that fills as the user advances. Shows "Campaign Progress" label.
+2. **Info panel** — scrollable area showing either:
+   - Welcome screen (shown before Start is pressed): crown emoji, title, brief instructions
+   - Point info (shown after each step): point number, title, date/location subtitle, horizontal divider, full description text
+3. **Step counter** — small text showing e.g. "Leg 4 of 18 complete"
+4. **Controls** — two buttons side by side:
+   - **▶ Start** (gold gradient): initiates the journey, reveals departure marker, loads departure info, then disables itself and enables Next
+   - **Next ▶** (dark red gradient): advances to next leg, animates the route segment, flies map to destination, updates sidebar. Changes text to "Travelling…" during animation and locks to prevent double-clicking.
+
+### Map area
+Standard Leaflet map taking up all remaining horizontal space. Zoom controls visible (styled dark gold to match theme).
+
+---
+
+## 8. MARKER SYSTEM
+
+All 19 markers are placed on the map immediately at page load, but start in a **dimmed/gray state** to indicate "not yet visited":
+```javascript
+{ fillColor: '#555', color: '#333', weight: 2, opacity: 0.5, fillOpacity: 0.4 }
+```
+
+When a point is reached (via animation), it **lights up** to its active color:
+```javascript
+// departure: green, landing: gold, final: red
+{ fillColor: p.color, color: '#fff', weight: 2.5, opacity: 1, fillOpacity: 0.95 }
+```
+
+Marker sizes:
+- Departure and Final: radius 10–11px
+- All landing points: radius 8–9px
+
+Each marker has a **Leaflet popup** (click to open) showing the point name, date/location, a truncated description (140 chars + ellipsis), and coordinates.
+
+---
+
+## 9. ANIMATION SYSTEM
+
+### How it works
+The `animateSegment(segIdx, onComplete)` function:
+1. Takes the raw waypoints for a segment (e.g. 5–20 coordinate pairs)
+2. **Interpolates** them into 60 evenly-spaced points using cumulative distance math (so the animation speed is consistent regardless of waypoint spacing)
+3. Creates a new Leaflet polyline starting at the first point
+4. Uses `setInterval` at 18ms per frame to add one interpolated point at a time via `animLine.addLatLng()`
+5. When the last frame is reached, clears the interval, pushes the completed line to `drawnLines[]` array, calls `onComplete()`
+
+```javascript
+function animateSegment(segIdx, onComplete) {
+  const waypoints = segmentWaypoints[segIdx];
+  const STEPS_PER_SEGMENT = 60;
+  const interval = 18; // ms
+  // ... interpolation + setInterval loop
+}
+```
+
+### Route line style
+```javascript
+{ color: '#8B0000', weight: 3, opacity: 0.9, lineJoin: 'round' }
+```
+Dark red (`#8B0000`), solid (no dash), 3px weight. Chosen over gold/dashed because it shows up clearly against the NatGeo basemap.
+
+### Map fly behavior
+After each segment completes, the map flies to the newly revealed destination:
+```javascript
+map.flyTo([points[currentStep].lat, points[currentStep].lon], 5, { duration: 1.2 });
+```
+Zoom level 5, 1.2 second flight duration.
+
+### State machine
+```javascript
+let currentStep = -1;  // -1 = not started
+let animating = false; // prevents double-clicks
+let drawnLines = [];   // all completed polylines (kept on map)
+let animLine = null;   // the currently-animating polyline
+```
+
+The `advance()` function handles both buttons:
+- If `currentStep === -1`: reveal departure, update sidebar, enable Next, disable Start
+- If `currentStep >= 0` and `segIdx < 18`: animate segment → light up marker → show info → update progress → fly map
+- If `currentStep === 18` (final): disable Next, change text to "— Complete —"
+
+---
+
+## 10. PROGRESS BAR
+
+Width is computed as:
+```javascript
+const pct = currentStep < 0 ? 0 : Math.round((currentStep / (points.length - 1)) * 100);
+document.getElementById('progress-fill').style.width = pct + '%';
+```
+`points.length - 1 = 18`, so each step advances by ~5.6%.
+
+CSS transition: `width 0.5s ease` for smooth fill animation.
+
+---
+
+## 11. DESIGN / COLOR PALETTE
+
+| Element | Color |
+|---|---|
+| Background (body/sidebar) | `#130e04`, `#1a1209` |
+| Header gradient | `#2c1f08` → `#4a3010` |
+| Gold accent / border | `#c8960c` |
+| Gold text (titles) | `#f5c842` |
+| Muted gold (sub-labels) | `#c8a84a`, `#a08040` |
+| Body text | `#f0e0b0`, `#ddd0a8` |
+| Departure marker | `#4caf50` (green) |
+| Landing markers | `#f5c842` (gold) |
+| Final marker | `#e53935` (red) |
+| Route line | `#8B0000` (dark red) |
+| Start button | Gold gradient |
+| Next button | Dark red gradient |
+| Dimmed markers (unvisited) | `#555` fill, `#333` border |
+
+The overall aesthetic is "ancient manuscript meets dark atlas" — dark backgrounds with warm gold tones to evoke the ancient world without being kitschy.
+
+---
+
+## 12. LEGEND
+
+A Leaflet custom control in the `bottomright` position with:
+- Green dot = Departure (Macedonia)
+- Gold dot = Landing Points (×17)
+- Red dot = Final Point (India)
+- Dark red line = Animated Route
+
+---
+
+## 13. KNOWN ISSUES / THINGS TO WATCH OUT FOR
+
+1. **Esri NatGeo tiles cap at zoom 16** — if users zoom in very far, tiles stop loading. This is a tile provider limitation.
+2. **The tileerror fallback** (OSM) is registered but OSM tiles look quite different from NatGeo. If NatGeo goes down, the visual style changes noticeably.
+3. **No mobile responsiveness** — the sidebar is fixed at 320px. On small screens it may crowd the map. The layout hasn't been optimized for mobile.
+4. **No "Back" / "Restart" button** — once you advance past a point, there's no way to go back without refreshing the page.
+5. **Animation can't be interrupted** — during the `setInterval` animation, the Next button is disabled. If the user clicks very rapidly before the disable takes effect, `advance()` has an `if (animating) return` guard.
+6. **Segment 11 (LP11 → LP12)** has only 2 waypoints (it's a very short segment). The interpolation still works but the line is nearly straight.
+
+---
+
+## 14. POTENTIAL ENHANCEMENTS (user may request these)
+
+- **Restart button** — reset all markers to dimmed state, clear all drawn lines, reset `currentStep` to -1
+- **Timeline slider** — jump to any point directly
+- **Mobile layout** — collapsible sidebar or bottom sheet
+- **Speed control** — slider to adjust animation speed (currently hardcoded: 60 steps, 18ms/frame ≈ ~1.1 seconds per segment)
+- **Year counter** — animate a year label (334 BC → 323 BC) as the route progresses
+- **Portrait images** — add historically relevant images to each sidebar card
+- **Export / share** — the file is self-contained and can be uploaded directly to GitHub Pages, Netlify, or any static host
+- **Sound** — ambient ancient music or sword sound effects on arrival
+- **Satellite view toggle** — switch between NatGeo and Esri World Imagery
+- **Distance tracker** — show cumulative km traveled in the sidebar
+- **"All at once" mode** — a button to reveal the full route instantly without animation
+
+---
+
+## 15. DEPLOYMENT
+
+The user intends to host this on **GitHub Pages**. Steps:
+1. Create a GitHub repository
+2. Upload `alexander_the_great_voyage.html` renamed as `index.html`
+3. Go to Settings → Pages → set source to `main` branch, root directory
+4. GitHub will publish at `https://[username].github.io/[repo-name]`
+
+The file is entirely self-contained (no server-side code, no API keys, no build step). It will work as a static file on any host.
+
+---
+
+*This context document was generated to give a new Claude session (e.g. Claude in VS Code) full understanding of the project without needing to read the source code. All data, logic, design decisions, and known issues are documented above.*
