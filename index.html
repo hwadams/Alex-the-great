@@ -160,6 +160,7 @@
     <div id="controls">
       <button class="btn" id="btn-start">▶ Start</button>
       <button class="btn" id="btn-next" disabled>Next ▶</button>
+      <button class="btn" id="btn-mute" style="flex:0 0 42px;font-size:18px;background:#2c1f08;border:1px solid #4a3010;color:#f5c842;" title="Mute/unmute narration">🔊</button>
     </div>
   </div>
 
@@ -460,6 +461,8 @@ function showPointInfo(idx) {
   document.getElementById('point-desc').textContent  = p.desc;
   // scroll to top
   document.getElementById('info-panel').scrollTop = 0;
+  // auto-narrate
+  speak(`${p.title}. ${p.sub}. ${p.desc}`);
 }
 
 function updateProgress() {
@@ -600,10 +603,34 @@ function advance() {
 }
 
 // ─────────────────────────────────────────────
+// NARRATION
+// ─────────────────────────────────────────────
+let narrationMuted = false;
+
+function speak(text) {
+  if (!window.speechSynthesis || narrationMuted) return;
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.rate = 0.95;
+  utt.pitch = 1;
+  window.speechSynthesis.speak(utt);
+}
+
+function stopSpeech() {
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+}
+
+document.getElementById('btn-mute').addEventListener('click', () => {
+  narrationMuted = !narrationMuted;
+  document.getElementById('btn-mute').textContent = narrationMuted ? '🔇' : '🔊';
+  if (narrationMuted) stopSpeech();
+});
+
+// ─────────────────────────────────────────────
 // BUTTON EVENTS
 // ─────────────────────────────────────────────
 document.getElementById('btn-start').addEventListener('click', advance);
-document.getElementById('btn-next').addEventListener('click', advance);
+document.getElementById('btn-next').addEventListener('click', () => { stopSpeech(); advance(); });
 
 // ─────────────────────────────────────────────
 // LEGEND
