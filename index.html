@@ -367,6 +367,35 @@ const segmentWaypoints = [
 ];
 
 // ─────────────────────────────────────────────
+// CUMULATIVE MILES & YEARS
+// ─────────────────────────────────────────────
+
+// Haversine distance in miles between two lat/lon points
+function haversineMiles(lat1, lon1, lat2, lon2) {
+  const R = 3958.8;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 +
+    Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// Cumulative miles at each point index (index 0 = departure = 0 miles)
+const cumulativeMiles = [0];
+for (let seg = 0; seg < segmentWaypoints.length; seg++) {
+  const wpts = segmentWaypoints[seg];
+  let segDist = 0;
+  for (let i = 1; i < wpts.length; i++) {
+    segDist += haversineMiles(wpts[i-1][0], wpts[i-1][1], wpts[i][0], wpts[i][1]);
+  }
+  cumulativeMiles.push(cumulativeMiles[seg] + segDist);
+}
+
+// Cumulative years elapsed from Spring 334 BC at each point (rounded to nearest 0.25)
+// 19 entries: Departure + 17 Landing Points + Final
+const pointYears = [0, 0.25, 0.75, 1.5, 2.25, 2.5, 2.75, 3.5, 3.75, 4.0, 4.25, 4.5, 4.75, 4.75, 5.0, 5.25, 7.0, 8.0, 8.25];
+
+// ─────────────────────────────────────────────
 // MAP INIT
 // ─────────────────────────────────────────────
 const map = L.map('map', { center: [36, 48], zoom: 4 });
@@ -419,10 +448,10 @@ function showPointInfo(idx) {
   const p = points[idx];
   document.getElementById('welcome').style.display = 'none';
   document.getElementById('point-info').style.display = 'block';
+  const yrs   = pointYears[idx];
+  const miles = Math.round(cumulativeMiles[idx]);
   document.getElementById('point-number').textContent =
-    p.number === 'Departure' ? 'Departure' :
-    p.number === 'Final'     ? 'Final Destination' :
-    `Landing Point ${p.number} of 17`;
+    `Years: ${yrs} · Miles: ${miles.toLocaleString()}`;
   document.getElementById('point-title').textContent = p.title;
   document.getElementById('point-sub').textContent   = p.sub;
   document.getElementById('point-desc').textContent  = p.desc;
