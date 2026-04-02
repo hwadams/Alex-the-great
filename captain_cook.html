@@ -434,7 +434,7 @@
         ship: "Plymouth to Tahiti, New Zealand, Australia, Java, and home",
         color: "#d7a83d",
         intro: "Cook left England to observe the Transit of Venus at Tahiti and then search the South Pacific. The voyage produced the first detailed British charts of New Zealand and Australia's eastern coast.",
-        camera: { lat: 8, lon: -15, zoom: 2 },
+        camera: { lat: 22, lon: -20, zoom: 2.6 },
         points: [
           {
             number: "Departure",
@@ -545,7 +545,7 @@
         ship: "A global hunt for the southern continent through the Antarctic seas",
         color: "#60b8d6",
         intro: "Cook's second voyage was designed to settle the Terra Australis question. He crossed the Antarctic Circle repeatedly, roamed farther south than any navigator before him, and disproved the idea of a temperate southern supercontinent.",
-        camera: { lat: -12, lon: -10, zoom: 2 },
+        camera: { lat: 8, lon: -25, zoom: 2.6 },
         points: [
           {
             number: "Departure",
@@ -638,7 +638,7 @@
         ship: "From Britain through the southern oceans to Hawaii and the Northwest Coast",
         color: "#d86b4c",
         intro: "The third voyage aimed to approach the Northwest Passage from the Pacific side. It led Cook to the Hawaiian Islands, the northwest coast of North America, and finally back to Hawaii, where he was killed at Kealakekua Bay.",
-        camera: { lat: -4, lon: 25, zoom: 2 },
+        camera: { lat: 14, lon: -35, zoom: 2.6 },
         points: [
           {
             number: "Departure",
@@ -1120,6 +1120,23 @@
       };
     }
 
+    function shouldTrackSegment(segmentIndex, metrics) {
+      const voyageId = currentVoyage().id;
+
+      if (voyageId === "voyage-1" && (segmentIndex === 0 || segmentIndex === 4 || segmentIndex === 5)) {
+        return false;
+      }
+
+      return metrics.length > 34 || metrics.lonSpan > 26 || metrics.latSpan > 18;
+    }
+
+    function focusOnArrival(point) {
+      map.flyTo([point.lat, point.displayLon], 2.85, {
+        duration: 0.85,
+        easeLinearity: 0.22
+      });
+    }
+
     function interpolatePoints(pts, targetFrames = 84) {
       const distances = [0];
 
@@ -1148,11 +1165,12 @@
       return interpolated;
     }
 
-    function animateSegment(segmentPoints, onComplete) {
+    function animateSegment(segmentPoints, segmentIndex, onComplete) {
       const token = ++animationToken;
       const metrics = segmentMetrics(segmentPoints);
-      const frameCount = Math.max(100, Math.min(240, Math.round(metrics.length * 3.1)));
-      const frameDelay = metrics.length > 120 ? 26 : metrics.length > 70 ? 23 : 20;
+      const trackSegment = shouldTrackSegment(segmentIndex, metrics);
+      const frameCount = Math.max(72, Math.min(180, Math.round(metrics.length * 2.15)));
+      const frameDelay = metrics.length > 120 ? 18 : metrics.length > 70 ? 17 : 15;
       const frames = interpolatePoints(segmentPoints, frameCount);
 
       if (layerState.activeLine) {
@@ -1177,6 +1195,10 @@
         const frame = frames[frameIndex];
         layerState.activeLine.addLatLng(frame);
 
+        if (trackSegment && frameIndex < frames.length - 1) {
+          map.panTo(frame, { animate: true, duration: 0.09 });
+        }
+
         frameIndex += 1;
 
         if (frameIndex >= frames.length) {
@@ -1188,10 +1210,12 @@
       }, frameDelay);
     }
 
-    function animateRewind(segmentData, onComplete) {
+    function animateRewind(segmentData, segmentIndex, onComplete) {
       const token = ++animationToken;
       const frames = segmentData.frames;
-      const rewindDelay = frames.length > 170 ? 18 : 14;
+      const metrics = segmentMetrics(frames);
+      const trackSegment = shouldTrackSegment(segmentIndex, metrics);
+      const rewindDelay = frames.length > 140 ? 14 : 12;
 
       if (layerState.activeLine) {
         map.removeLayer(layerState.activeLine);
@@ -1217,6 +1241,11 @@
         frameIndex -= 1;
         const visible = frames.slice(0, Math.max(frameIndex, 1));
         layerState.activeLine.setLatLngs(visible);
+
+        if (trackSegment) {
+          map.panTo(visible[visible.length - 1], { animate: true, duration: 0.09 });
+        }
+
         if (frameIndex <= 1) {
           clearInterval(timer);
           map.removeLayer(layerState.activeLine);
@@ -1246,6 +1275,7 @@
       highlightThrough(currentStep);
       showPointInfo(route[currentStep], currentStep, route.length);
       updateProgress();
+      focusOnArrival(route[currentStep]);
     }
 
     function advance() {
@@ -1261,13 +1291,14 @@
 
       const segmentPath = currentSegmentPath(segmentIndex);
 
-      animateSegment(segmentPath, () => {
+      animateSegment(segmentPath, segmentIndex, () => {
         currentStep += 1;
         highlightThrough(currentStep);
         showPointInfo(route[currentStep], currentStep, route.length);
         animating = false;
         rewinding = false;
         updateProgress();
+        focusOnArrival(route[currentStep]);
       });
     }
 
@@ -1293,13 +1324,14 @@
       rewinding = true;
       setControlState();
 
-      animateRewind(lastSegment, () => {
+      animateRewind(lastSegment, currentStep - 1, () => {
         currentStep -= 1;
         highlightThrough(currentStep);
         showPointInfo(route[currentStep], currentStep, route.length);
         animating = false;
         rewinding = false;
         updateProgress();
+        focusOnArrival(route[currentStep]);
       });
     }
 
