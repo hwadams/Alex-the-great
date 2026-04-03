@@ -20,7 +20,7 @@
       --text: #f4e8c2;
       --route: #f4efe1;
       --voyage-1: #d7a83d;
-      --voyage-2: #60b8d6;
+      --voyage-2: #f4efe1;
       --voyage-3: #d86b4c;
       --active: #fff4d2;
     }
@@ -543,7 +543,7 @@
         title: "Second Voyage aboard HMS Resolution",
         years: "1772-1775",
         ship: "A global hunt for the southern continent through the Antarctic seas",
-        color: "#60b8d6",
+        color: "#f4efe1",
         intro: "Cook's second voyage was designed to settle the Terra Australis question. He crossed the Antarctic Circle repeatedly, roamed farther south than any navigator before him, and disproved the idea of a temperate southern supercontinent.",
         camera: { lat: 8, lon: -25, zoom: 2.6 },
         points: [
@@ -620,7 +620,7 @@
             type: "landing"
           },
           {
-            number: "Final",
+            number: "8",
             title: "Return to England",
             sub: "30 July 1775 · Spithead",
             desc: "Cook returned to Britain having effectively demolished the old myth of a fertile southern continent in navigable latitudes. He was now the preeminent long-distance navigator of his age.",
@@ -739,11 +739,11 @@
         segments: [
           [[35.0, -15.0], [5.0, -20.0], [-20.0, -5.0], [-34.0, 18.0]],
           [[-45.0, 30.0], [-55.0, 38.0], [-63.0, 40.0]],
-          [[-63.0, 70.0], [-58.0, 110.0], [-52.0, 145.0], [-47.0, 160.0]],
+          [[-63.0, 70.0], [-60.0, 105.0], [-56.0, 138.0], [-52.0, 155.0], [-48.0, 163.0], [-45.8, 166.0]],
           [[-35.0, 177.0], [-25.0, -178.0], [-22.0, -175.0]],
           [[-24.0, -165.0], [-25.0, -150.0], [-26.0, -130.0]],
-          [[-20.0, -118.0], [-15.0, -128.0], [-10.0, -136.0]],
-          [[-18.0, -120.0], [-30.0, -140.0], [-48.0, -165.0], [-57.0, -90.0], [-57.0, -65.0], [-55.0, -45.0]],
+          [[-20.0, -118.0], [-14.0, -128.0], [-10.0, -136.0]],
+          [[-12.0, -145.0], [-18.0, -155.0], [-24.0, -168.0], [-33.0, 178.0], [-43.0, 165.0], [-52.0, 145.0], [-56.0, 120.0], [-57.0, 90.0], [-56.5, 50.0], [-55.0, 10.0], [-54.2806, -36.5078]],
           [[-40.0, -20.0], [-15.0, -5.0], [10.0, -15.0], [35.0, -8.0]]
         ]
       },
@@ -1032,10 +1032,11 @@
       pointInfo.style.display = "block";
       const years = currentYearsAt(index).toFixed(2);
       const miles = currentMilesAt(index).toLocaleString();
+      const progressWord = currentVoyage().id === "voyage-2" ? "Leg" : "Stop";
       document.getElementById("point-number").textContent =
         point.number === "Departure"
           ? `Departure • ${years} years • ${miles} miles`
-          : `Stop ${index} of ${totalPoints - 1} • ${years} years • ${miles} miles`;
+          : `${progressWord} ${index} of ${totalPoints - 1} • ${years} years • ${miles} miles`;
       document.getElementById("point-title").textContent = point.title;
       document.getElementById("point-sub").textContent = point.sub;
       document.getElementById("point-desc").textContent = point.desc;
