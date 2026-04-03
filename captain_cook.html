@@ -727,9 +727,9 @@
           [[-56.0, -80.0], [-58.0, -110.0], [-45.0, -140.0], [-27.0, -151.0]],
           [[-24.0, -156.0], [-31.0, -166.0], [-36.0, 179.0], [-37.5, 178.2], [-36.8, 176.8], [-34.5, 177.5]],
           [[-36.0, 178.0], [-39.8, 178.0], [-44.5, 176.0], [-47.5, 171.0], [-47.2, 166.5], [-44.5, 166.2], [-41.5, 170.5], [-41.2, 173.3]],
-          [[-42.0, 174.8], [-41.5, 177.5], [-43.5, 179.0], [-46.8, 178.5], [-47.5, 173.0], [-46.5, 168.0], [-43.0, 163.0], [-39.0, 159.0], [-36.5, 155.0], [-35.0, 152.8], [-34.3, 151.8]],
+          [[-40.8, 173.8], [-40.2, 169.0], [-39.2, 164.0], [-38.0, 159.0], [-36.8, 154.5], [-35.2, 151.8], [-34.3, 151.8]],
           [[-30.0, 153.5], [-26.0, 154.5], [-22.0, 154.8], [-18.0, 152.5], [-15.8, 146.6]],
-          [[-13.5, 146.0], [-12.5, 144.0], [-11.8, 141.5], [-11.8, 138.0], [-11.5, 134.0], [-11.0, 130.0], [-10.0, 125.0], [-9.0, 120.0], [-8.2, 114.0], [-7.0, 108.0]],
+          [[-13.5, 146.0], [-12.5, 144.0], [-11.8, 141.5], [-11.8, 138.0], [-11.5, 134.0], [-11.0, 130.0], [-10.0, 125.0], [-9.0, 120.0], [-8.4, 116.0], [-7.8, 111.0], [-6.8, 106.0], [-5.9, 105.2], [-5.9, 106.2], [-6.2088, 106.8456]],
           [[-7.0, 104.2], [-9.0, 102.0], [-13.0, 97.0], [-18.0, 90.0], [-24.0, 80.0], [-30.0, 68.0], [-34.0, 54.0], [-36.0, 40.0], [-36.0, 28.0], [-35.8, 18.0], [-35.2, 13.0], [-34.8, 10.0], [-33.0, 3.0], [-26.0, -5.0], [-14.0, -13.0], [0.0, -18.0], [18.0, -18.0], [33.0, -14.0], [43.0, -9.0], [49.0, -4.0], [50.8, -1.2], [51.1, 0.6]]
         ]
       },
@@ -974,9 +974,7 @@
     function popupHtml(point, index, totalStops) {
       const label = point.number === "Departure"
         ? "Departure"
-        : point.number === "Final"
-          ? "Final stop"
-          : `Stop ${index} of ${totalStops}`;
+        : `Stop ${index} of ${totalStops}`;
 
       return `
         <div class="popup-title">${point.title}</div>
@@ -1037,9 +1035,7 @@
       document.getElementById("point-number").textContent =
         point.number === "Departure"
           ? `Departure • ${years} years • ${miles} miles`
-          : point.number === "Final"
-            ? `Final stop • ${years} years • ${miles} miles`
-            : `Stop ${index} of ${totalPoints - 2} • ${years} years • ${miles} miles`;
+          : `Stop ${index} of ${totalPoints - 1} • ${years} years • ${miles} miles`;
       document.getElementById("point-title").textContent = point.title;
       document.getElementById("point-sub").textContent = point.sub;
       document.getElementById("point-desc").textContent = point.desc;
@@ -1078,7 +1074,7 @@
 
     function buildMarkers() {
       const route = currentComputed().route;
-      const totalStops = route.length - 2;
+      const totalStops = route.length - 1;
 
       route.forEach((point, index) => {
         const marker = L.circleMarker([point.lat, point.displayLon], {
