@@ -729,7 +729,7 @@
           [[-36.0, 178.0], [-39.8, 178.0], [-44.5, 176.0], [-47.5, 171.0], [-47.2, 166.5], [-44.5, 166.2], [-41.5, 170.5], [-41.2, 173.3]],
           [[-40.8, 173.8], [-40.2, 169.0], [-39.2, 164.0], [-38.0, 159.0], [-36.8, 154.5], [-35.2, 151.8], [-34.3, 151.8]],
           [[-30.0, 153.5], [-26.0, 154.5], [-22.0, 154.8], [-18.0, 152.5], [-15.8, 146.6]],
-          [[-13.5, 146.0], [-12.5, 144.0], [-11.8, 141.5], [-11.8, 138.0], [-11.5, 134.0], [-11.0, 130.0], [-10.0, 125.0], [-9.0, 120.0], [-8.4, 116.0], [-7.8, 111.0], [-6.8, 106.0], [-5.9, 105.2], [-5.9, 106.2], [-6.2088, 106.8456]],
+          [[-13.5, 146.0], [-12.5, 144.0], [-11.8, 141.5], [-11.0, 138.0], [-10.2, 133.0], [-9.8, 128.0], [-9.0, 123.0], [-8.2, 118.0], [-7.4, 113.5], [-6.9, 109.0], [-6.6, 106.5], [-6.3, 105.8], [-6.2088, 106.8456]],
           [[-7.0, 104.2], [-9.0, 102.0], [-13.0, 97.0], [-18.0, 90.0], [-24.0, 80.0], [-30.0, 68.0], [-34.0, 54.0], [-36.0, 40.0], [-36.0, 28.0], [-35.8, 18.0], [-35.2, 13.0], [-34.8, 10.0], [-33.0, 3.0], [-26.0, -5.0], [-14.0, -13.0], [0.0, -18.0], [18.0, -18.0], [33.0, -14.0], [43.0, -9.0], [49.0, -4.0], [50.8, -1.2], [51.1, 0.6]]
         ]
       },
@@ -762,6 +762,60 @@
       }
     };
 
+    const voyageOverlays = {
+      "voyage-3": [
+        {
+          label: "Clerke after Cook",
+          color: "#d86b4c",
+          dashArray: "7 10",
+          opacity: 0.95,
+          weight: 3.5,
+          coords: [
+            [19.4769, -155.9230],
+            [28.0, -160.0],
+            [40.0, -170.0],
+            [52.0, 178.0],
+            [59.0, 171.0],
+            [64.0, -169.0],
+            [70.0, -168.0],
+            [64.0, -170.0],
+            [58.0, 178.0],
+            [53.0, 170.0],
+            [52.9776, 158.6483]
+          ]
+        },
+        {
+          label: "Gore after Clerke",
+          color: "#d86b4c",
+          dashArray: "2 10",
+          opacity: 0.95,
+          weight: 3.5,
+          coords: [
+            [52.9776, 158.6483],
+            [48.0, 150.0],
+            [42.0, 142.0],
+            [35.0, 136.0],
+            [28.0, 131.0],
+            [22.2, 113.5],
+            [6.0, 105.0],
+            [-5.8, 104.8],
+            [-6.2, 106.8],
+            [-6.0, 110.0],
+            [-8.0, 114.0],
+            [-12.0, 118.0],
+            [-20.0, 90.0],
+            [-30.0, 65.0],
+            [-34.0, 30.0],
+            [-34.35, 18.47],
+            [-10.0, -10.0],
+            [15.0, -15.0],
+            [40.0, -10.0],
+            [51.5, 1.0]
+          ]
+        }
+      ]
+    };
+
     const tabWrap = document.getElementById("tabs");
     const voyageSummary = document.getElementById("voyage-summary");
     const btnStart = document.getElementById("btn-start");
@@ -790,7 +844,8 @@
       markers: [],
       markerLookup: [],
       completedLines: [],
-      activeLine: null
+      activeLine: null,
+      overlays: []
     };
 
     let selectedVoyageIndex = 0;
@@ -992,8 +1047,10 @@
       }
 
       layerState.completedLines.forEach(({ line }) => map.removeLayer(line));
+      layerState.overlays.forEach((line) => map.removeLayer(line));
       layerState.markers.forEach((marker) => map.removeLayer(marker));
       layerState.completedLines = [];
+      layerState.overlays = [];
       layerState.markers = [];
       layerState.markerLookup = [];
     }
@@ -1032,7 +1089,7 @@
       pointInfo.style.display = "block";
       const years = currentYearsAt(index).toFixed(2);
       const miles = currentMilesAt(index).toLocaleString();
-      const progressWord = currentVoyage().id === "voyage-2" ? "Leg" : "Stop";
+      const progressWord = currentVoyage().id === "voyage-3" ? "Stop" : "Leg";
       document.getElementById("point-number").textContent =
         point.number === "Departure"
           ? `Departure • ${years} years • ${miles} miles`
@@ -1090,6 +1147,23 @@
         marker.bindPopup(popupHtml(point, index, totalStops));
         layerState.markers.push(marker);
         layerState.markerLookup.push({ point, marker });
+      });
+    }
+
+    function buildOverlayRoutes() {
+      const overlays = voyageOverlays[currentVoyage().id] || [];
+      overlays.forEach((overlay) => {
+        const latLngs = buildContinuousPolyline(overlay.coords);
+        const line = L.polyline(latLngs, {
+          color: overlay.color,
+          weight: overlay.weight,
+          opacity: overlay.opacity,
+          dashArray: overlay.dashArray,
+          lineCap: "round",
+          lineJoin: "round"
+        }).addTo(map);
+
+        layerState.overlays.push(line);
       });
     }
 
@@ -1424,6 +1498,7 @@
       updateVoyageSummary();
       renderTabs();
       buildMarkers();
+      buildOverlayRoutes();
       resetSidebar();
 
       const { camera } = currentVoyage();
